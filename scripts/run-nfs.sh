@@ -1,0 +1,1 @@
+qemu-system-arm -M vexpress-a9 -m 128M -kernel zImage -dtb vexpress-v2p-ca9.dtb -nographic -append "root=/dev/nfs rw nfsroot=192.168.247.129:/opt/nfsroot init=/linuxrc console=ttyAMA0 ip=192.168.247.100" -net nic,vlan=0 -net tap,vlan=0,ifname=tap0,script=no,downscript=no

@@ -1,1 +1,10 @@
 2020/11/12	init repository
+
+1.把下面文件下载后放到download目录下
+u-boot: https://ftp.denx.de/pub/u-boot/u-boot-2017.05.tar.bz2
+linux: https://mirrors.edge.kernel.org/pub/linux/kernel/v4.x/linux-4.4.76.tar.xz
+busybox: https://busybox.net/downloads/busybox-1.27.0.tar.bz2
+2.执行make，编译uboot、kernel、busybox
+3.执行sudo make install，安装到target
+4.到target目录下运行qemu: sudo ./run.sh
+

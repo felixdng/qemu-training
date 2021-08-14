@@ -1,5 +1,0 @@
-#!/bin/sh
-/bin/mount -a
-echo /sbin/mdev > /proc/sys/kernel/hotplug
-/sbin/mdev -s
-

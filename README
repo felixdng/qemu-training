@@ -1,10 +1,130 @@
-2020/11/12	init repository
+/* 2020/11/12	init repository */
 
-1.把下面文件下载后放到download目录下
-u-boot: https://ftp.denx.de/pub/u-boot/u-boot-2017.05.tar.bz2
-linux: https://mirrors.edge.kernel.org/pub/linux/kernel/v4.x/linux-4.4.76.tar.xz
-busybox: https://busybox.net/downloads/busybox-1.27.0.tar.bz2
-2.执行make，编译uboot、kernel、busybox
-3.执行sudo make install，安装到target
-4.到target目录下运行qemu: sudo ./run.sh
+编译前准备工作：
+为了避免受网络环境的影响，提前下载好安装包，放到"download/"目录下备用。
+以下是下载的网址，可以根据实际需求下载所需版本的安装包。
+u-boot: https://ftp.denx.de/pub/u-boot/
+        https://ftp.denx.de/pub/u-boot/u-boot-2017.05.tar.bz2
+linux: https://mirrors.edge.kernel.org/pub/linux/kernel/v4.x/
+       https://mirrors.edge.kernel.org/pub/linux/kernel/v4.x/linux-4.4.76.tar.xz
+busybox: https://busybox.net/downloads/
+         https://busybox.net/downloads/busybox-1.27.0.tar.bz2
+
+(一) 第一次编译要设定PROJECT，有以下几种方式。
+(1) 设置环境变量，例如：export PROJECT=vexpress
+(2) make参数，例如： make PROJECT=vexpress
+默认值(vexpress)。
+
+(二) 目标架构平台和交叉编译工具。
+(1) 通过project配置文件定义，例如 configs/vexpress/vexpress.mk
+(2) make参数，例如：make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+默认值(ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-)
+
+(三) project配置文件，主要包含一些特定的配置和变量
+(1) 路径：configs/xxx/xxx.mk，例如：configs/vexpress/vexpress.mk
+(2) 内容：
+ARCH                  架构平台
+CROSS_COMPILE         交叉编译工具
+UBOOT_VER             uboot版本
+LINUX_VER             linux版本
+ROOTFS_VER            rootfs版本
+MK_UBOOT_CONFIG       uboot配置目标
+UBOOT_CONFIG_PATH     uboot配置文件的相对路径
+MK_LINUX_CONFIG       linux配置目标
+LINUX_CONFIG_PATH     linux配置文件的相对路径
+
+(四) 编译步骤
+(1) make prebuild        首次执行成功一次即可。
+(2) 编译uboot
+    make uboot-config    首次执行成功一次即可，除非修改了配置则需要再执行一次。
+    make uboot-build
+(3) 编译linux
+    make linux-config    首次执行成功一次即可，除非修改了配置则需要再执行一次。
+    make linux-build
+(4) 编译rootfs
+    make rootfs-config   首次执行成功一次即可，除非修改了配置则需要再执行一次。
+    make rootfs-build
+(5) install
+    make install-uboot
+    make install-linux
+    make install-rootfs  这里需要root权限
+
+(五) 运行
+target目录下有这些文件：rootfs.ext3 run.sh u-boot xxx.dtb zImage
+执行 ./run.sh
+run.sh里面是qemu-system-arm命令，根据需要更改参数即可。
+
+(六) make 编译参数说明
+格式：make <TARGET> [OPTION1] [OPTION2] ... [OPTIONn]
+符合说明：
+<>: 编译目标，可以与[]组合使用，不能与其他<>混合使用。如果不知道目标则使用Makefile第一个目标。
+[]: 可选的选项，可以一个或多个，与其他选项组合使用。
+
+targets:
+<prebuild>
+    编译前的准备，包括创建目录、解压安装包等。
+    示例：make prebuild
+
+<uboot-config>
+    配置uboot。
+    示例：make uboot-config
+<uboot-saveconfig>
+    保存uboot配置，保存路径为：configs/xxx/xxx_uboot_defconfig
+    示例：make uboot-saveconfig
+<uboot-build>
+    编译uboot。
+    示例：make uboot-build
+<uboot-clean>
+    清除uboot编译。
+    示例：make uboot-clean
+<uboot> [t=]
+    编译uboot的其他目标（除了上面列举的之外），取决于uboot源码。
+    示例：make uboot t=menuconfig
+
+<linux-config>
+    配置linux。
+    示例：make linux-config
+<linux-saveconfig>
+    保存linux配置，保存路径为：configs/xxx/xxx_linux_defconfig
+    示例：make linux-saveconfig
+<linux-build>
+    编译linux。
+    示例：make linux-build
+<linux-clean>
+    清除linux编译。
+    示例：make linux-clean
+<linux> [t=]
+    编译linux的其他目标（除了上面列举的之外），取决于linux源码。
+    示例：make linux t=menuconfig
+
+<rootfs-config>
+    配置rootfs。
+    示例：make rootfs-config
+<rootfs-build>
+    编译rootfs。
+    示例：make rootfs-build
+<rootfs-clean>
+    清除rootfs编译。
+    示例：make rootfs-clean
+<rootfs> [t=]
+    编译rootfs的其他目标（除了上面列举的之外），取决于rootfs源码。
+    示例：make rootfs t=menuconfig
+
+<install-uboot>
+    安装uboot到目标路径。
+<install-linux>
+    安装linux到目标路径。
+<install-rootfs>
+    安装rootfs到目标路径，这里可能需要root执行权限。
+
+options:
+[PROJECT]
+    指定project，对应 configs/xxx/xxx.mk。
+    示例：make PROJECT=vexpress
+[ARCH]
+    设置架构，一般与[CROSS_COMPILE]一起使用。
+    示例：make ARCH=arm
+[CROSS_COMPILE]
+    设置交叉编译工具，一般与[ARCH]一起使用。
+    示例：make CROSS_COMPILE=arm-linux-gnueabihf-
 

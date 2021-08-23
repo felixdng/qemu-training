@@ -1,44 +1,97 @@
-TOP_DIR=$(shell pwd)
-BUILD_DIR=$(TOP_DIR)/build
-TARGET_DIR=$(TOP_DIR)/target
+#
+# Check the project type.
+# Setting project variables
+PROJECT?=
+ifneq ($(p),)
+PROJECT:=$(p)
+else ifeq ($(PROJECT),)
+PROJECT:=vexpress
+endif
+export PROJECT
 
-UBOOT_VER=u-boot-2015.01
-UBOOT_SRC=$(TOP_DIR)/$(UBOOT_VER)
-UBOOT_OUT=$(BUILD_DIR)/$(UBOOT_VER)
+export TOP_DIR:=$(shell pwd)
+export CONFIG_DIR=$(TOP_DIR)/configs
+export DOWNLOAD_DIR=$(TOP_DIR)/download
 
-KERNEL_VER=linux-4.0.1
-KERNEL_SRC=$(TOP_DIR)/$(KERNEL_VER)
-KERNEL_OUT=$(BUILD_DIR)/$(KERNEL_VER)
+export BUILD_DIR=$(TOP_DIR)/build
+export TARGET_DIR=$(BUILD_DIR)/$(PROJECT)/target
+export SRC_DIR=$(BUILD_DIR)/$(PROJECT)/src
+export OUT_DIR=$(BUILD_DIR)/$(PROJECT)/output
 
-ROOTFS_VER=busybox-1.27.0
-ROOTFS_SRC=$(TOP_DIR)/$(ROOTFS_VER)
-ROOTFS_OUT=$(BUILD_DIR)/$(ROOTFS_VER)
+export ARCH?=arm
+export CROSS_COMPILE?=arm-linux-gnueabihf-
 
-DOWNLOAD_DIR=$(TOP_DIR)/download
 
-MYMAKE=make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+#-------------------------------------------------------------#
+# functions defined.                                          #
+#-------------------------------------------------------------#
 
-all:prebuild uboot-config uboot kernel-config kernel rootfs-config rootfs
+# $(call ifeq_any_of,arg1,arg2)
+# return:
+#    non null: arg1 is equal to at least one element in arg2
+#    null: not equal
+ifeq_any_of = $(filter $(1),$(foreach v,$(2),$(v)))
 
+
+#-------------------------------------------------------------#
+# configs                                                     #
+#-------------------------------------------------------------#
+
+# check config files
+ifeq ($(wildcard $(CONFIG_DIR)/$(PROJECT)),)
+$(error project '$(PROJECT)' not supported)
+else ifeq ($(wildcard $(CONFIG_DIR)/$(PROJECT)/$(PROJECT).mk),)
+$(error project '$(PROJECT)' configs does not exist)
+endif
+include $(CONFIG_DIR)/$(PROJECT)/$(PROJECT).mk
+
+export UBOOT_VER?=u-boot-2015.01
+export UBOOT_SRC=$(SRC_DIR)/$(UBOOT_VER)
+export UBOOT_OUT=$(OUT_DIR)/$(UBOOT_VER)
+
+export LINUX_VER?=linux-4.0.1
+export LINUX_SRC=$(SRC_DIR)/$(LINUX_VER)
+export LINUX_OUT=$(OUT_DIR)/$(LINUX_VER)
+
+export ROOTFS_VER?=busybox-1.27.0
+export ROOTFS_SRC=$(SRC_DIR)/$(ROOTFS_VER)
+export ROOTFS_OUT=$(OUT_DIR)/$(ROOTFS_VER)
+
+MK_UBOOT_CONFIG?=vexpress_ca9x4_defconfig
+UBOOT_CONFIG_PATH?=configs/vexpress_ca9x4_defconfig
+MK_LINUX_CONFIG?=vexpress_defconfig
+LINUX_CONFIG_PATH?=arch/arm/configs/vexpress_defconfig
+
+
+#-------------------------------------------------------------#
+#                                                             #
+#-------------------------------------------------------------#
+all:
+
+
+#-------------------------------------------------------------#
+# prebuild                                                    #
+#-------------------------------------------------------------#
 prebuild:
 	$(info prebuild start...)
+	$(shell mkdir -p $(SRC_DIR) $(OUT_DIR) $(TARGET_DIR) $(UBOOT_OUT) $(LINUX_OUT) $(ROOTFS_OUT))
 ifeq ($(wildcard $(UBOOT_SRC)),)
 ifeq ($(wildcard $(DOWNLOAD_DIR)/$(UBOOT_VER).tar.*),)
-	$(error "[prebuild] u-boot package file is not exist!")
+	$(error [prebuild] u-boot package file is not exist!)
 else
 	$(info [prebuild] u-boot preparing...)
-	$(shell tar -xf $(DOWNLOAD_DIR)/$(UBOOT_VER).tar.* -C $(TOP_DIR))
+	$(shell tar -xf $(DOWNLOAD_DIR)/$(UBOOT_VER).tar.* -C $(SRC_DIR))
 	$(info [prebuild] u-boot finish.$(rst))
 endif
 else
 	$(info [prebuild] u-boot directory already exist.)
 endif
-ifeq ($(wildcard $(KERNEL_SRC)),)
-ifeq ($(wildcard $(DOWNLOAD_DIR)/$(KERNEL_VER).tar.*),)
-	$(error "[prebuild] linux kernel package file is not exist!")
+ifeq ($(wildcard $(LINUX_SRC)),)
+ifeq ($(wildcard $(DOWNLOAD_DIR)/$(LINUX_VER).tar.*),)
+	$(error [prebuild] linux kernel package file is not exist!)
 else
 	$(info [prebuild] linux kernel preparing...)
-	$(shell tar -xf $(DOWNLOAD_DIR)/$(KERNEL_VER).tar.* -C $(TOP_DIR))
+	$(shell tar -xf $(DOWNLOAD_DIR)/$(LINUX_VER).tar.* -C $(SRC_DIR))
 	$(info [prebuild] linux kernel finish.)
 endif
 else
@@ -46,10 +99,10 @@ else
 endif
 ifeq ($(wildcard $(ROOTFS_SRC)),)
 ifeq ($(wildcard $(DOWNLOAD_DIR)/$(ROOTFS_VER).tar.*),)
-	$(error "[prebuild] rootfs package file is not exist!")
+	$(error [prebuild] rootfs package file is not exist!)
 else
 	$(info [prebuild] rootfs preparing...)
-	$(shell tar -xf $(DOWNLOAD_DIR)/$(ROOTFS_VER).tar.* -C $(TOP_DIR))
+	$(shell tar -xf $(DOWNLOAD_DIR)/$(ROOTFS_VER).tar.* -C $(SRC_DIR))
 	$(info [prebuild] rootfs finish.$(rst))
 endif
 else
@@ -57,55 +110,102 @@ else
 endif
 	@echo "prebuild finish"
 
-# ------------------------- u-boot -------------------------
-uboot:
-	$(MYMAKE) -C $(UBOOT_SRC) O=$(UBOOT_OUT)
 
+#-------------------------------------------------------------#
+# uboot                                                       #
+#-------------------------------------------------------------#
 uboot-config:
-	$(MYMAKE) vexpress_ca9x4_defconfig -C $(UBOOT_SRC) O=$(UBOOT_OUT)
-
+ifeq ($(wildcard $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_uboot_defconfig),)
+	@cp -f $(UBOOT_SRC)/$(UBOOT_CONFIG_PATH) $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_uboot_defconfig
+endif
+	@cp -f $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_uboot_defconfig $(UBOOT_SRC)/$(UBOOT_CONFIG_PATH)
+	make $(MK_UBOOT_CONFIG) -C $(UBOOT_SRC) O=$(UBOOT_OUT)
+uboot-saveconfig:
+	make savedefconfig -C $(UBOOT_SRC) O=$(UBOOT_OUT)
+	@cp -f $(UBOOT_OUT)/defconfig $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_uboot_defconfig
+uboot-build:
+	make -C $(UBOOT_SRC) O=$(UBOOT_OUT)
 uboot-clean:
-	rm -rf $(UBOOT_OUT)
+	make clean -C $(UBOOT_SRC) O=$(UBOOT_OUT)
+UBOOT_DEF_CMD=$(MK_UBOOT_CONFIG) savedefconfig clean
+uboot:
+ifneq ($(t),)
+ifeq ($(call ifeq_any_of,$(t),$(UBOOT_DEF_CMD)),)
+	make $(t) -C $(UBOOT_SRC) O=$(UBOOT_OUT)
+endif
+endif
 
-uboot-rebuild:uboot-clean uboot-config uboot
 
-# ------------------------- linux kernel -------------------------
-kernel:
-	$(MYMAKE) zImage -C $(KERNEL_SRC) O=$(KERNEL_OUT)
-	$(MYMAKE) modules -C $(KERNEL_SRC) O=$(KERNEL_OUT)
-	$(MYMAKE) dtbs -C $(KERNEL_SRC) O=$(KERNEL_OUT)
+#-------------------------------------------------------------#
+# linux kernel                                                #
+#-------------------------------------------------------------#
+linux-config:
+ifeq ($(wildcard $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_linux_defconfig),)
+	@cp -f $(LINUX_SRC)/$(LINUX_CONFIG_PATH) $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_linux_defconfig
+endif
+	@cp -f $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_linux_defconfig $(LINUX_SRC)/$(LINUX_CONFIG_PATH)
+	make $(MK_LINUX_CONFIG) -C $(LINUX_SRC) O=$(LINUX_OUT)
+linux-saveconfig:
+	make savedefconfig -C $(LINUX_SRC) O=$(LINUX_OUT)
+	@cp -f $(LINUX_OUT)/defconfig $(CONFIG_DIR)/$(PROJECT)/$(PROJECT)_linux_defconfig
+linux-build:
+	make zImage -C $(LINUX_SRC) O=$(LINUX_OUT)
+	make modules -C $(LINUX_SRC) O=$(LINUX_OUT)
+	make dtbs -C $(LINUX_SRC) O=$(LINUX_OUT)
+linux-clean:
+	make clean -C $(LINUX_SRC) O=$(LINUX_OUT)
+LINUX_DEF_CMD=$(MK_LINUX_CONFIG) savedefconfig clean
+linux:
+ifneq ($(t),)
+ifeq ($(call ifeq_any_of,$(t),$(LINUX_DEF_CMD)),)
+	make $(t) -C $(LINUX_SRC) O=$(LINUX_OUT)
+endif
+endif
 
-kernel-config:
-	$(MYMAKE) vexpress_defconfig -C $(KERNEL_SRC) O=$(KERNEL_OUT)
 
-kernel-clean:
-	rm -rf $(KERNEL_OUT)
-
-kernel-rebuild:kernel-clean kernel-config kernel
-
-rootfs:
-	$(MYMAKE) -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
-	$(MYMAKE) install -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
-	
+#-------------------------------------------------------------#
+# rootfs                                                      #
+#-------------------------------------------------------------#
 rootfs-config:
-	mkdir -p $(ROOTFS_OUT)
-	$(MYMAKE) defconfig -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
-
+	make defconfig -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
+rootfs-build:
+	make -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
+	make install -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
 rootfs-clean:
-	rm -rf $(ROOTFS_OUT)
+	make clean -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
+ROOTFS_DEF_CMD=defconfig install clean
+rootfs:
+ifneq ($(t),)
+ifeq ($(call ifeq_any_of,$(t),$(ROOTFS_DEF_CMD)),)
+	make $(t) -C $(ROOTFS_SRC) O=$(ROOTFS_OUT)
+endif
+endif
 
-rootfs-rebuild:rootfs-clean rootfs-config rootfs
 
-install:
-	mkdir -p $(TARGET_DIR)
-	cp -f $(UBOOT_OUT)/u-boot $(TARGET_DIR)/u-boot
-	cp -f $(KERNEL_OUT)/arch/arm/boot/zImage $(TARGET_DIR)/zImage
-	cp -f $(KERNEL_OUT)/arch/arm/boot/dts/vexpress-v2p-ca9.dtb $(TARGET_DIR)/vexpress-v2p-ca9.dtb
+#-------------------------------------------------------------#
+# install                                                     #
+#-------------------------------------------------------------#
+install-uboot:
+	cp -f $(UBOOT_OUT)/u-boot $(TARGET_DIR)/
+
+install-linux:
+ifeq ($(ARCH),arm)
+	cp -f $(LINUX_OUT)/arch/arm/boot/zImage $(TARGET_DIR)/
+	cp -f $(LINUX_OUT)/arch/arm/boot/dts/*.dtb $(TARGET_DIR)/
+else
+endif
+
+install-rootfs:
 	cp -f $(TOP_DIR)/scripts/run*.sh $(TARGET_DIR)/
 	$(TOP_DIR)/scripts/mkrootfs.sh
 
-.PHONY:all prebuild install \
-       uboot uboot-config uboot-clean uboot-rebuild\
-       kernel kernel-config kernel-clean kernel-rebuild \
-       rootfs rootfs-config rootfs-clean rootfs-rebuild
+
+#-------------------------------------------------------------#
+#                                                             #
+#-------------------------------------------------------------#
+.PHONY:all prebuild \
+       uboot-config uboot-saveconfig uboot-build uboot-clean uboot \
+       linux-config linux-saveconfig linux-build linux-clean linux \
+       rootfs-config rootfs-build rootfs-clean rootfs \
+	   install-uboot install-linux install-rootfs
 

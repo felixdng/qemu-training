@@ -11,7 +11,7 @@ export CROSS_COMPILE:=arm-linux-gnueabihf-
 # [optional] version infomations.
 override UBOOT_VER:=u-boot-2015.01
 override LINUX_VER:=linux-4.0.1
-override ROOTFS_VER:=busybox-1.27.0
+override ROOTFS_VER:=busybox-1.32.0
 
 # [required]
 override MK_UBOOT_CONFIG:=vexpress_ca9x4_defconfig

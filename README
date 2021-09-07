@@ -25,6 +25,7 @@ busybox: https://busybox.net/downloads/
 (2) 内容：
 ARCH                  架构平台
 CROSS_COMPILE         交叉编译工具
+COMPILE_LIBS_DIR      交叉编译工具的库目录
 UBOOT_VER             uboot版本
 LINUX_VER             linux版本
 ROOTFS_VER            rootfs版本
@@ -127,4 +128,7 @@ options:
 [CROSS_COMPILE]
     设置交叉编译工具，一般与[ARCH]一起使用。
     示例：make CROSS_COMPILE=arm-linux-gnueabihf-
+[COMPILE_LIBS_DIR]
+    设置交叉编译工具的库目录，一般与[CROSS_COMPILE]一起使用。
+    示例：make COMPILE_LIBS_DIR=/usr/arm-linux-gnueabihf/lib
 

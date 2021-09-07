@@ -7,6 +7,8 @@ unexport ARCH
 export ARCH:=arm
 unexport CROSS_COMPILE
 export CROSS_COMPILE:=arm-linux-gnueabihf-
+unexport COMPILE_LIBS_DIR
+export COMPILE_LIBS_DIR:=/usr/arm-linux-gnueabihf/lib
 
 # [optional] version infomations.
 override UBOOT_VER:=u-boot-2015.01

@@ -20,6 +20,7 @@ export OUT_DIR=$(BUILD_DIR)/$(PROJECT)/output
 
 export ARCH?=arm
 export CROSS_COMPILE?=arm-linux-gnueabihf-
+export COMPILE_LIBS_DIR?=/usr/arm-linux-gnueabihf/lib
 
 
 #-------------------------------------------------------------#

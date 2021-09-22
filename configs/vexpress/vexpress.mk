@@ -12,7 +12,7 @@ export COMPILE_LIBS_DIR:=/usr/arm-linux-gnueabihf/lib
 
 # [optional] version infomations.
 override UBOOT_VER:=u-boot-2015.01
-override LINUX_VER:=linux-4.0.1
+override LINUX_VER:=linux-4.20.17
 override ROOTFS_VER:=busybox-1.32.0
 
 # [required]

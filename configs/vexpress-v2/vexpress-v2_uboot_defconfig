@@ -3,7 +3,10 @@ CONFIG_TARGET_VEXPRESS_CA9X4=y
 CONFIG_SYS_TEXT_BASE=0x60800000
 CONFIG_NR_DRAM_BANKS=2
 CONFIG_DISTRO_DEFAULTS=y
-CONFIG_BOOTCOMMAND="run distro_bootcmd; run bootflash"
+CONFIG_BOOTDELAY=5
+CONFIG_USE_BOOTARGS=y
+CONFIG_BOOTARGS="root=/dev/mmcblk0p3 rw rootfstype=ext2 rootwait earlycon console=tty0 console=ttyAMA0 init=/linuxrc"
+CONFIG_BOOTCOMMAND="load mmc 0:2 0x60008000 zImage; load mmc 0:2 0x61000000 vexpress-v2p-ca9.dtb; bootz 0x60008000 - 0x61000000"
 # CONFIG_DISPLAY_CPUINFO is not set
 # CONFIG_DISPLAY_BOARDINFO is not set
 # CONFIG_CMD_CONSOLE is not set

@@ -3,6 +3,12 @@
 # These variables are defined in the top-level Makefile.
 # TOP_DIR,TARGET_DIR,ROOTFS_OUT,etc.
 
+# check rootfs object directory
+if [ ! -d "${ROOTFS_OUT}/${ROOTFS_OBJ_PATH}" ]; then
+echo "Error: No rootfs object directory."
+exit 1
+fi
+
 if [ -d "${TARGET_DIR}/rootfs" ]; then
 	umount ${TARGET_DIR}/rootfs
 	rm -rf ${TARGET_DIR}/rootfs
@@ -22,7 +28,7 @@ if [ -d "${COMPILE_LIBS_DIR}" ]; then
 	find ${TARGET_DIR}/rootfs/lib/ -name "*.a" | xargs rm -f
 	find ${TARGET_DIR}/rootfs/lib/ -type f | xargs ${CROSS_COMPILE}strip
 fi
-cp -arf ${ROOTFS_OUT}/_install/* ${TARGET_DIR}/rootfs/
+cp -arf ${ROOTFS_OUT}/${ROOTFS_OBJ_PATH}/* ${TARGET_DIR}/rootfs/
 
 umount ${TARGET_DIR}/rootfs
 rm -rf ${TARGET_DIR}/rootfs

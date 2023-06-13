@@ -9,7 +9,7 @@ export COMPILE_LIBS_DIR:=/usr/arm-linux-gnueabihf/lib
 
 # [required] uboot
 override OBJ_UBOOT:=y
-export UBOOT_VER:=u-boot-2015.01
+export UBOOT_VER:=u-boot-2019.10
 export MK_UBOOT_CONFIG:=vexpress_ca9x4_defconfig
 export UBOOT_CONFIG_PATH:=configs/vexpress_ca9x4_defconfig
 export UBOOT_OBJ_IMAGE:=u-boot

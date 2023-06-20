@@ -1,0 +1,63 @@
+diff -Naur linux-2.6.24/arch/x86/lib/copy_user_64.S linux-2.6.24-ok/arch/x86/lib/copy_user_64.S
+--- linux-2.6.24/arch/x86/lib/copy_user_64.S	2008-01-25 06:58:37.000000000 +0800
++++ linux-2.6.24-ok/arch/x86/lib/copy_user_64.S	2023-06-20 00:39:45.180500291 +0800
+@@ -344,7 +344,7 @@
+ 11:	pop %rax
+ 7:	ret
+ 	CFI_ENDPROC
+-END(copy_user_generic_c)
++END(copy_user_generic_string)
+ 
+ 	.section __ex_table,"a"
+ 	.quad 1b,3b
+diff -Naur linux-2.6.24/arch/x86/vdso/Makefile linux-2.6.24-ok/arch/x86/vdso/Makefile
+--- linux-2.6.24/arch/x86/vdso/Makefile	2008-01-25 06:58:37.000000000 +0800
++++ linux-2.6.24-ok/arch/x86/vdso/Makefile	2023-06-20 00:29:42.284471819 +0800
+@@ -17,7 +17,7 @@
+ 
+ # The DSO images are built using a special linker script.
+ quiet_cmd_syscall = SYSCALL $@
+-      cmd_syscall = $(CC) -m elf_x86_64 -nostdlib $(SYSCFLAGS_$(@F)) \
++      cmd_syscall = $(CC) -m64 -nostdlib $(SYSCFLAGS_$(@F)) \
+ 		          -Wl,-T,$(filter-out FORCE,$^) -o $@
+ 
+ export CPPFLAGS_vdso.lds += -P -C
+diff -Naur linux-2.6.24/kernel/mutex.c linux-2.6.24-ok/kernel/mutex.c
+--- linux-2.6.24/kernel/mutex.c	2008-01-25 06:58:37.000000000 +0800
++++ linux-2.6.24-ok/kernel/mutex.c	2023-06-20 01:02:52.648565816 +0800
+@@ -58,7 +58,7 @@
+  * We also put the fastpath first in the kernel image, to make sure the
+  * branch is predicted by the CPU as default-untaken.
+  */
+-static void fastcall noinline __sched
++static __used void fastcall noinline __sched
+ __mutex_lock_slowpath(atomic_t *lock_count);
+ 
+ /***
+@@ -95,7 +95,7 @@
+ EXPORT_SYMBOL(mutex_lock);
+ #endif
+ 
+-static void fastcall noinline __sched
++static __used void fastcall noinline __sched
+ __mutex_unlock_slowpath(atomic_t *lock_count);
+ 
+ /***
+@@ -271,7 +271,7 @@
+  * Here come the less common (and hence less performance-critical) APIs:
+  * mutex_lock_interruptible() and mutex_trylock().
+  */
+-static int fastcall noinline __sched
++static __used int fastcall noinline __sched
+ __mutex_lock_interruptible_slowpath(atomic_t *lock_count);
+ 
+ /***
+@@ -294,7 +294,7 @@
+ 
+ EXPORT_SYMBOL(mutex_lock_interruptible);
+ 
+-static void fastcall noinline __sched
++static __used void fastcall noinline __sched
+ __mutex_lock_slowpath(atomic_t *lock_count)
+ {
+ 	struct mutex *lock = container_of(lock_count, struct mutex, count);

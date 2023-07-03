@@ -39,7 +39,20 @@ if [ -d "${COMPILE_LIBS_DIR}" ]; then
 	rm -rf /tmp/__tmp_lib
 fi
 cp -arf ${ROOTFS_OUT}/${ROOTFS_OBJ_PATH}/* ${TARGET_DIR}/rootfs/
-mknod ${TARGET_DIR}/rootfs/dev/console c 5 1
+mknod ${TARGET_DIR}/rootfs/dev/console c 5       1
+
+mknod ${TARGET_DIR}/rootfs/dev/ttyAMA0 c 204     64
+mknod ${TARGET_DIR}/rootfs/dev/ttyAMA1 c 204     65
+mknod ${TARGET_DIR}/rootfs/dev/ttyAMA2 c 204     66
+mknod ${TARGET_DIR}/rootfs/dev/ttyAMA3 c 204     67
+
+mknod ${TARGET_DIR}/rootfs/dev/tty0    c 4       0
+mknod ${TARGET_DIR}/rootfs/dev/tty1    c 4       1
+mknod ${TARGET_DIR}/rootfs/dev/tty2    c 4       2
+mknod ${TARGET_DIR}/rootfs/dev/tty3    c 4       3
+mknod ${TARGET_DIR}/rootfs/dev/tty4    c 4       4
+
+mknod ${TARGET_DIR}/rootfs/dev/null    c 1       3
 
 umount ${TARGET_DIR}/rootfs
 rm -rf ${TARGET_DIR}/rootfs

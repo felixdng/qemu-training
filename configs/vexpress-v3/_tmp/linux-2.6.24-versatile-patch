@@ -1,0 +1,33 @@
+diff -Naur linux-2.6.24/arch/arm/vfp/Makefile linux-2.6.24-ok/arch/arm/vfp/Makefile
+--- linux-2.6.24/arch/arm/vfp/Makefile	2008-01-25 06:58:37.000000000 +0800
++++ linux-2.6.24-ok/arch/arm/vfp/Makefile	2023-06-18 23:57:47.191835413 +0800
+@@ -7,7 +7,7 @@
+ # EXTRA_CFLAGS := -DDEBUG
+ # EXTRA_AFLAGS := -DDEBUG
+ 
+-KBUILD_AFLAGS	:=$(KBUILD_AFLAGS:-msoft-float=-Wa,-mfpu=softvfp+vfp)
++KBUILD_AFLAGS	:=$(KBUILD_AFLAGS:-msoft-float=-Wa,-mfpu=softvfp+vfp -mfloat-abi=soft)
+ LDFLAGS		+=--no-warn-mismatch
+ 
+ obj-y			+= vfp.o
+diff -Naur linux-2.6.24/Makefile linux-2.6.24-ok/Makefile
+--- linux-2.6.24/Makefile	2008-01-25 06:58:37.000000000 +0800
++++ linux-2.6.24-ok/Makefile	2023-06-18 23:54:22.835682974 +0800
+@@ -431,7 +431,7 @@
+ include $(srctree)/arch/$(SRCARCH)/Makefile
+ export KBUILD_DEFCONFIG
+ 
+-config %config: scripts_basic outputmakefile FORCE
++%config: scripts_basic outputmakefile FORCE
+ 	$(Q)mkdir -p include/linux include/config
+ 	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+ 
+@@ -1500,7 +1500,7 @@
+ 	$(Q)$(MAKE) $(build)=$(build-dir) $(target-dir)$(notdir $@)
+ 
+ # Modules
+-/ %/: prepare scripts FORCE
++%/: prepare scripts FORCE
+ 	$(cmd_crmodverdir)
+ 	$(Q)$(MAKE) KBUILD_MODULES=$(if $(CONFIG_MODULES),1) \
+ 	$(build)=$(build-dir)

@@ -1,0 +1,50 @@
+diff -Naur busybox-1.32.0.base/coreutils/sync.c busybox-1.32.0/coreutils/sync.c
+--- busybox-1.32.0.base/coreutils/sync.c	2019-06-10 02:09:31.000000000 -0700
++++ busybox-1.32.0/coreutils/sync.c	2023-07-01 23:42:20.704964467 -0700
+@@ -68,7 +68,7 @@
+ 			 * syncfs is documented to only fail with EBADF,
+ 			 * which can't happen here. So, no error checks.
+ 			 */
+-			syncfs(fd);
++			//syncfs(fd);
+ 		} else
+ # endif
+ 		if (((opts & OPT_DATASYNC) ? fdatasync(fd) : fsync(fd)) != 0) {
+diff -Naur busybox-1.32.0.base/networking/libiproute/ipaddress.c busybox-1.32.0/networking/libiproute/ipaddress.c
+--- busybox-1.32.0.base/networking/libiproute/ipaddress.c	2020-06-26 11:47:44.000000000 -0700
++++ busybox-1.32.0/networking/libiproute/ipaddress.c	2023-07-01 23:30:02.504990689 -0700
+@@ -330,10 +330,12 @@
+ 		ifa->ifa_flags &= ~IFA_F_TENTATIVE;
+ 		printf("tentative ");
+ 	}
++#ifdef IFA_F_DADFAILED
+ 	if (ifa->ifa_flags & IFA_F_DADFAILED) {
+ 		ifa->ifa_flags &= ~IFA_F_DADFAILED;
+ 		printf("dadfailed ");
+ 	}
++#endif
+ 	if (ifa->ifa_flags & IFA_F_DEPRECATED) {
+ 		ifa->ifa_flags &= ~IFA_F_DEPRECATED;
+ 		printf("deprecated ");
+diff -Naur busybox-1.32.0.base/util-linux/nsenter.c busybox-1.32.0/util-linux/nsenter.c
+--- busybox-1.32.0.base/util-linux/nsenter.c	2020-06-26 11:47:44.000000000 -0700
++++ busybox-1.32.0/util-linux/nsenter.c	2023-07-01 23:48:24.932951529 -0700
+@@ -216,12 +216,12 @@
+ 
+ 		if (ns_ctx->fd < 0)
+ 			continue;
+-		if (setns(ns_ctx->fd, ns->flag)) {
+-			bb_perror_msg_and_die(
+-				"setns(): can't reassociate to namespace '%s'",
+-				ns->ns_nsfile8 + 3 /* skip over "ns/" */
+-			);
+-		}
++//		if (setns(ns_ctx->fd, ns->flag)) {
++//			bb_perror_msg_and_die(
++//				"setns(): can't reassociate to namespace '%s'",
++//				ns->ns_nsfile8 + 3 /* skip over "ns/" */
++//			);
++//		}
+ 		close(ns_ctx->fd); /* should close fds, to not confuse exec'ed PROG */
+ 		/*ns_ctx->fd = -1;*/
+ 	}

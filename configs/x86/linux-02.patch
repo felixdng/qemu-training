@@ -1,0 +1,12 @@
+diff -Naur linux-2.6.24/arch/x86/boot/boot.h linux-2.6.24-ok/arch/x86/boot/boot.h
+--- linux-2.6.24/arch/x86/boot/boot.h	2008-01-24 14:58:37.000000000 -0800
++++ linux-2.6.24-ok/arch/x86/boot/boot.h	2023-07-02 21:09:44.996996473 -0700
+@@ -109,7 +109,7 @@
+ static inline u8 rdfs8(addr_t addr)
+ {
+ 	u8 v;
+-	asm volatile("movb %%fs:%1,%0" : "=r" (v) : "m" (*(u8 *)addr));
++	asm volatile("movb %%fs:%1,%0" : "=q" (v) : "m" (*(u8 *)addr));
+ 	return v;
+ }
+ static inline u16 rdfs16(addr_t addr)
